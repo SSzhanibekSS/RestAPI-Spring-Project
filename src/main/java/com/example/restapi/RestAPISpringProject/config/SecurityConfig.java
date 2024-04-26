@@ -7,12 +7,15 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.firewall.HttpFirewall;
+import org.springframework.security.web.firewall.StrictHttpFirewall;
 
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled = true)
@@ -26,16 +29,26 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         this.personDetailsService = personDetailsService;
         this.jwtFilter = jwtFilter;
     }
-
+    private static final String[] AUTH_WHITELIST = {
+            "/authenticate",
+            "/swagger-resources/**",
+            "/swagger-ui/**",
+            "/v3/api-docs",
+            "/webjars/**"
+    };
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        // конфигурируем сам Spring Security
-        // конфигурируем авторизацию
+
         http
+                .cors()
+                .and()
                 .csrf().disable()
+                .headers()
+                .frameOptions().deny()
+                .and()
                 .authorizeRequests()
-                .antMatchers("/admin").hasRole("ADMIN")
-                .antMatchers("/auth/login", "/auth/reg", "/error").permitAll()
+                .antMatchers(AUTH_WHITELIST).permitAll()
+                .antMatchers("/auth/login", "/auth/reg", "/error", "/v3/api-docs/**").permitAll()
                 .anyRequest().authenticated()
                 .and()
                 .sessionManagement()
@@ -44,7 +57,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
     }
 
-    // Настраиваем аутентификацию
+
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
         auth.userDetailsService(personDetailsService)

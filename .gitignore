@@ -1,9 +1,24 @@
-HELP.md
-target/
+# Ignore everything in the project root except the .gitignore file and the .mvn folder
+/*
+
+# Unignore the .gitignore file itself
+!.gitignore
+
+# Unignore the .mvn folder and its contents
+!.mvn/
+
+# Unignore the HELP.md file
+!HELP.md
+
+# Unignore the target folder and its contents
+!/target/
+
+# Ignore specific files under the .mvn and target folders
 !.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
 
+# Ignore IDE specific files and folders
 ### STS ###
 .apt_generated
 .classpath
